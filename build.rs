@@ -37,7 +37,9 @@ fn main() {
 
 
     // Olm needs libstdc++
-    println!("cargo:rustc-link-lib=stdc++");
+    if cfg!(not(target_os = "macos")) {
+        println!("cargo:rustc-link-lib=stdc++");
+    }
 }
 
 fn run(cmd: &mut Command) {

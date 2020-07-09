@@ -1,8 +1,8 @@
 use std::process::{Command, Stdio};
 use std::{env, fs, path::PathBuf};
 
-const OLM_LINK_VARIANT_ENV: &str = "OLM_LINK_VARIANT";
 const DOCS_RS: &str = "DOCS_RS";
+const OLM_LINK_VARIANT_ENV: &'static str = "OLM_LINK_VARIANT";
 
 fn main() {
     let manifest_dir = match env::var_os("CARGO_MANIFEST_DIR") {
@@ -22,6 +22,32 @@ fn main() {
         Ok(x) => x == "1",
         _ => false,
     };
+
+    if olm_link_variant == "static" {
+        // path to olm source code
+        let src = PathBuf::from(&manifest_dir).join("olm");
+        // where we will put our built library for static linking
+        let dst = PathBuf::from(&out_path).join("build");
+        let _ = fs::create_dir(&dst);
+        // path to our final libolm file
+        let dst_file = dst.join("libolm.a");
+
+        // building libolm as a static lib
+        if !dst_file.exists() {
+            run(Command::new("cmake")
+                .arg(".")
+                .arg("-Bbuild")
+                .arg("-DBUILD_SHARED_LIBS=NO")
+                .current_dir(&src));
+            run(Command::new("cmake")
+                .arg("--build")
+                .arg("build")
+                .current_dir(&src));
+
+            let _ = fs::copy(&src.join("build/libolm.a"), &dst_file);
+        }
+        println!("cargo:rustc-link-search={}", dst.display());
+    }
 
     // Skip building and/or linking of libolm for docs.rs.
     if !docs_rs {
@@ -59,6 +85,10 @@ fn main() {
 
         // Link to olm library
         println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
+    }
+    // Olm needs libstdc++
+    if cfg!(not(target_os = "macos")) {
+        println!("cargo:rustc-link-lib=stdc++");
     }
 }
 

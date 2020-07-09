@@ -22,7 +22,7 @@ This is the default and requires no further action. `libolm` is built locally an
 - GNU make or a compatible variant
 - GCC
 - Emscripten (WebAssembly only)
-
+- cmake
 ### Dynamic
 
 For linking against `libolm` dynamically, first make sure that you have the library in your link path.

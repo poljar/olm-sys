@@ -1,7 +1,7 @@
 use std::process::{Command, Stdio};
 use std::{env, fs, path::PathBuf};
 
-const OLM_LINK_VARIANT_ENV : &'static str = "OLM_LINK_VARIANT";
+const OLM_LINK_VARIANT_ENV: &str = "OLM_LINK_VARIANT";
 
 fn main() {
     let manifest_dir = match env::var_os("CARGO_MANIFEST_DIR") {
@@ -10,7 +10,7 @@ fn main() {
     };
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let olm_link_variant = env::var(OLM_LINK_VARIANT_ENV).unwrap_or("static".to_string());
+    let olm_link_variant = env::var(OLM_LINK_VARIANT_ENV).unwrap_or_else(|_| "static".to_string());
 
     if olm_link_variant == "static" {
         // path to olm source code
@@ -34,7 +34,6 @@ fn main() {
 
     // Link to olm library
     println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
-
 
     // Olm needs libstdc++
     if cfg!(not(target_os = "macos")) {

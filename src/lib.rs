@@ -31,7 +31,7 @@ pub const __STDC_IEC_559_COMPLEX__: u32 = 1;
 pub const __STDC_ISO_10646__: u32 = 201706;
 pub const __GNU_LIBRARY__: u32 = 6;
 pub const __GLIBC__: u32 = 2;
-pub const __GLIBC_MINOR__: u32 = 29;
+pub const __GLIBC_MINOR__: u32 = 30;
 pub const _SYS_CDEFS_H: u32 = 1;
 pub const __glibc_c99_flexarr_available: u32 = 1;
 pub const __WORDSIZE: u32 = 64;
@@ -901,6 +901,15 @@ extern "C" {
     pub fn olm_session_has_received_message(session: *mut OlmSession) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    #[doc = " Write a null-terminated string describing the internal state of an olm"]
+    #[doc = " session to the buffer provided for debugging and logging purposes."]
+    pub fn olm_session_describe(
+        session: *mut OlmSession,
+        buf: *mut ::std::os::raw::c_char,
+        buflen: usize,
+    );
+}
+extern "C" {
     #[doc = " Checks if the PRE_KEY message is for this in-bound session. This can happen"]
     #[doc = " if multiple messages are sent to this account before this account sends a"]
     #[doc = " message in reply. The one_time_key_message buffer is destroyed. Returns 1 if"]
@@ -1028,7 +1037,7 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Verify an ed25519 signature. If the key was too small then"]
-    #[doc = " olm_session_last_error will be \"INVALID_BASE64\". If the signature was invalid"]
+    #[doc = " olm_utility_last_error() will be \"INVALID_BASE64\". If the signature was invalid"]
     #[doc = " then olm_utility_last_error() will be \"BAD_MESSAGE_MAC\"."]
     pub fn olm_ed25519_verify(
         utility: *mut OlmUtility,
@@ -1037,6 +1046,418 @@ extern "C" {
         message: *const ::std::os::raw::c_void,
         message_length: usize,
         signature: *mut ::std::os::raw::c_void,
+        signature_length: usize,
+    ) -> usize;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OlmSAS {
+    _unused: [u8; 0],
+}
+extern "C" {
+    #[doc = " A null terminated string describing the most recent error to happen to an"]
+    #[doc = " SAS object."]
+    pub fn olm_sas_last_error(sas: *mut OlmSAS) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " The size of an SAS object in bytes."]
+    pub fn olm_sas_size() -> usize;
+}
+extern "C" {
+    #[doc = " Initialize an SAS object using the supplied memory."]
+    #[doc = " The supplied memory must be at least `olm_sas_size()` bytes."]
+    pub fn olm_sas(memory: *mut ::std::os::raw::c_void) -> *mut OlmSAS;
+}
+extern "C" {
+    #[doc = " Clears the memory used to back an SAS object."]
+    pub fn olm_clear_sas(sas: *mut OlmSAS) -> usize;
+}
+extern "C" {
+    #[doc = " The number of random bytes needed to create an SAS object."]
+    pub fn olm_create_sas_random_length(sas: *mut OlmSAS) -> usize;
+}
+extern "C" {
+    #[doc = " Creates a new SAS object."]
+    #[doc = ""]
+    #[doc = " @param[in] sas the SAS object to create, initialized by `olm_sas()`."]
+    #[doc = " @param[in] random array of random bytes.  The contents of the buffer may be"]
+    #[doc = "     overwritten."]
+    #[doc = " @param[in] random_length the number of random bytes provided.  Must be at"]
+    #[doc = "    least `olm_create_sas_random_length()`."]
+    #[doc = ""]
+    #[doc = " @return `olm_error()` on failure.  If there weren't enough random bytes then"]
+    #[doc = " `olm_sas_last_error()` will be `NOT_ENOUGH_RANDOM`."]
+    pub fn olm_create_sas(
+        sas: *mut OlmSAS,
+        random: *mut ::std::os::raw::c_void,
+        random_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " The size of a public key in bytes."]
+    pub fn olm_sas_pubkey_length(sas: *mut OlmSAS) -> usize;
+}
+extern "C" {
+    #[doc = " Get the public key for the SAS object."]
+    #[doc = ""]
+    #[doc = " @param[in] sas the SAS object."]
+    #[doc = " @param[out] pubkey buffer to store the public key."]
+    #[doc = " @param[in] pubkey_length the size of the `pubkey` buffer.  Must be at least"]
+    #[doc = "   `olm_sas_pubkey_length()`."]
+    #[doc = ""]
+    #[doc = " @return `olm_error()` on failure.  If the `pubkey` buffer is too small, then"]
+    #[doc = " `olm_sas_last_error()` will be `OUTPUT_BUFFER_TOO_SMALL`."]
+    pub fn olm_sas_get_pubkey(
+        sas: *mut OlmSAS,
+        pubkey: *mut ::std::os::raw::c_void,
+        pubkey_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Sets the public key of other user."]
+    #[doc = ""]
+    #[doc = " @param[in] sas the SAS object."]
+    #[doc = " @param[in] their_key the other user's public key.  The contents of the"]
+    #[doc = "     buffer will be overwritten."]
+    #[doc = " @param[in] their_key_length the size of the `their_key` buffer."]
+    #[doc = ""]
+    #[doc = " @return `olm_error()` on failure.  If the `their_key` buffer is too small,"]
+    #[doc = " then `olm_sas_last_error()` will be `INPUT_BUFFER_TOO_SMALL`."]
+    pub fn olm_sas_set_their_key(
+        sas: *mut OlmSAS,
+        their_key: *mut ::std::os::raw::c_void,
+        their_key_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Generate bytes to use for the short authentication string."]
+    #[doc = ""]
+    #[doc = " @param[in] sas the SAS object."]
+    #[doc = " @param[in] info extra information to mix in when generating the bytes, as"]
+    #[doc = "     per the Matrix spec."]
+    #[doc = " @param[in] info_length the length of the `info` parameter."]
+    #[doc = " @param[out] output the output buffer."]
+    #[doc = " @param[in] output_length the size of the output buffer.  For hex-based SAS"]
+    #[doc = "     as in the Matrix spec, this will be 5."]
+    pub fn olm_sas_generate_bytes(
+        sas: *mut OlmSAS,
+        info: *const ::std::os::raw::c_void,
+        info_length: usize,
+        output: *mut ::std::os::raw::c_void,
+        output_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " The size of the message authentication code generated by"]
+    #[doc = " olm_sas_calculate_mac()`."]
+    pub fn olm_sas_mac_length(sas: *mut OlmSAS) -> usize;
+}
+extern "C" {
+    #[doc = " Generate a message authentication code (MAC) based on the shared secret."]
+    #[doc = ""]
+    #[doc = " @param[in] sas the SAS object."]
+    #[doc = " @param[in] input the message to produce the authentication code for."]
+    #[doc = " @param[in] input_length the length of the message."]
+    #[doc = " @param[in] info extra information to mix in when generating the MAC, as per"]
+    #[doc = "     the Matrix spec."]
+    #[doc = " @param[in] info_length the length of the `info` parameter."]
+    #[doc = " @param[out] mac the buffer in which to store the MAC."]
+    #[doc = " @param[in] mac_length the size of the `mac` buffer.  Must be at least"]
+    #[doc = " `olm_sas_mac_length()`"]
+    #[doc = ""]
+    #[doc = " @return `olm_error()` on failure.  If the `mac` buffer is too small, then"]
+    #[doc = " `olm_sas_last_error()` will be `OUTPUT_BUFFER_TOO_SMALL`."]
+    pub fn olm_sas_calculate_mac(
+        sas: *mut OlmSAS,
+        input: *const ::std::os::raw::c_void,
+        input_length: usize,
+        info: *const ::std::os::raw::c_void,
+        info_length: usize,
+        mac: *mut ::std::os::raw::c_void,
+        mac_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    pub fn olm_sas_calculate_mac_long_kdf(
+        sas: *mut OlmSAS,
+        input: *const ::std::os::raw::c_void,
+        input_length: usize,
+        info: *const ::std::os::raw::c_void,
+        info_length: usize,
+        mac: *mut ::std::os::raw::c_void,
+        mac_length: usize,
+    ) -> usize;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OlmPkEncryption {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn olm_pk_encryption_size() -> usize;
+}
+extern "C" {
+    #[doc = " Initialise an encryption object using the supplied memory"]
+    #[doc = "  The supplied memory must be at least olm_pk_encryption_size() bytes"]
+    pub fn olm_pk_encryption(memory: *mut ::std::os::raw::c_void) -> *mut OlmPkEncryption;
+}
+extern "C" {
+    #[doc = " A null terminated string describing the most recent error to happen to an"]
+    #[doc = " encryption object"]
+    pub fn olm_pk_encryption_last_error(
+        encryption: *mut OlmPkEncryption,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Clears the memory used to back this encryption object"]
+    pub fn olm_clear_pk_encryption(encryption: *mut OlmPkEncryption) -> usize;
+}
+extern "C" {
+    #[doc = " Set the recipient's public key for encrypting to"]
+    pub fn olm_pk_encryption_set_recipient_key(
+        encryption: *mut OlmPkEncryption,
+        public_key: *const ::std::os::raw::c_void,
+        public_key_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Get the length of the ciphertext that will correspond to a plaintext of the"]
+    #[doc = " given length."]
+    pub fn olm_pk_ciphertext_length(
+        encryption: *mut OlmPkEncryption,
+        plaintext_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Get the length of the message authentication code."]
+    pub fn olm_pk_mac_length(encryption: *mut OlmPkEncryption) -> usize;
+}
+extern "C" {
+    #[doc = " Get the length of a public or ephemeral key"]
+    pub fn olm_pk_key_length() -> usize;
+}
+extern "C" {
+    #[doc = " The number of random bytes needed to encrypt a message."]
+    pub fn olm_pk_encrypt_random_length(encryption: *mut OlmPkEncryption) -> usize;
+}
+extern "C" {
+    #[doc = " Encrypt a plaintext for the recipient set using"]
+    #[doc = " olm_pk_encryption_set_recipient_key. Writes to the ciphertext, mac, and"]
+    #[doc = " ephemeral_key buffers, whose values should be sent to the recipient. mac is"]
+    #[doc = " a Message Authentication Code to ensure that the data is received and"]
+    #[doc = " decrypted properly. ephemeral_key is the public part of the ephemeral key"]
+    #[doc = " used (together with the recipient's key) to generate a symmetric encryption"]
+    #[doc = " key. Returns olm_error() on failure. If the ciphertext, mac, or"]
+    #[doc = " ephemeral_key buffers were too small then olm_pk_encryption_last_error()"]
+    #[doc = " will be \"OUTPUT_BUFFER_TOO_SMALL\". If there weren't enough random bytes then"]
+    #[doc = " olm_pk_encryption_last_error() will be \"OLM_INPUT_BUFFER_TOO_SMALL\"."]
+    pub fn olm_pk_encrypt(
+        encryption: *mut OlmPkEncryption,
+        plaintext: *const ::std::os::raw::c_void,
+        plaintext_length: usize,
+        ciphertext: *mut ::std::os::raw::c_void,
+        ciphertext_length: usize,
+        mac: *mut ::std::os::raw::c_void,
+        mac_length: usize,
+        ephemeral_key: *mut ::std::os::raw::c_void,
+        ephemeral_key_size: usize,
+        random: *const ::std::os::raw::c_void,
+        random_length: usize,
+    ) -> usize;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OlmPkDecryption {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn olm_pk_decryption_size() -> usize;
+}
+extern "C" {
+    #[doc = " Initialise a decryption object using the supplied memory"]
+    #[doc = "  The supplied memory must be at least olm_pk_decryption_size() bytes"]
+    pub fn olm_pk_decryption(memory: *mut ::std::os::raw::c_void) -> *mut OlmPkDecryption;
+}
+extern "C" {
+    #[doc = " A null terminated string describing the most recent error to happen to a"]
+    #[doc = " decription object"]
+    pub fn olm_pk_decryption_last_error(
+        decryption: *mut OlmPkDecryption,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Clears the memory used to back this decryption object"]
+    pub fn olm_clear_pk_decryption(decryption: *mut OlmPkDecryption) -> usize;
+}
+extern "C" {
+    #[doc = " Get the number of bytes required to store an olm private key"]
+    pub fn olm_pk_private_key_length() -> usize;
+}
+extern "C" {
+    #[doc = " DEPRECATED: Use olm_pk_private_key_length()"]
+    pub fn olm_pk_generate_key_random_length() -> usize;
+}
+extern "C" {
+    #[doc = " Initialise the key from the private part of a key as returned by"]
+    #[doc = " olm_pk_get_private_key(). The associated public key will be written to the"]
+    #[doc = " pubkey buffer. Returns olm_error() on failure. If the pubkey buffer is too"]
+    #[doc = " small then olm_pk_decryption_last_error() will be \"OUTPUT_BUFFER_TOO_SMALL\"."]
+    #[doc = " If the private key was not long enough then olm_pk_decryption_last_error()"]
+    #[doc = " will be \"OLM_INPUT_BUFFER_TOO_SMALL\"."]
+    #[doc = ""]
+    #[doc = " Note that the pubkey is a base64 encoded string, but the private key is"]
+    #[doc = " an unencoded byte array"]
+    pub fn olm_pk_key_from_private(
+        decryption: *mut OlmPkDecryption,
+        pubkey: *mut ::std::os::raw::c_void,
+        pubkey_length: usize,
+        privkey: *const ::std::os::raw::c_void,
+        privkey_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " DEPRECATED: Use olm_pk_key_from_private"]
+    pub fn olm_pk_generate_key(
+        decryption: *mut OlmPkDecryption,
+        pubkey: *mut ::std::os::raw::c_void,
+        pubkey_length: usize,
+        privkey: *const ::std::os::raw::c_void,
+        privkey_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Returns the number of bytes needed to store a decryption object."]
+    pub fn olm_pickle_pk_decryption_length(decryption: *mut OlmPkDecryption) -> usize;
+}
+extern "C" {
+    #[doc = " Stores decryption object as a base64 string. Encrypts the object using the"]
+    #[doc = " supplied key. Returns the length of the pickled object on success."]
+    #[doc = " Returns olm_error() on failure. If the pickle output buffer"]
+    #[doc = " is smaller than olm_pickle_pk_decryption_length() then"]
+    #[doc = " olm_pk_decryption_last_error() will be \"OUTPUT_BUFFER_TOO_SMALL\""]
+    pub fn olm_pickle_pk_decryption(
+        decryption: *mut OlmPkDecryption,
+        key: *const ::std::os::raw::c_void,
+        key_length: usize,
+        pickled: *mut ::std::os::raw::c_void,
+        pickled_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Loads a decryption object from a pickled base64 string. The associated"]
+    #[doc = " public key will be written to the pubkey buffer. Decrypts the object using"]
+    #[doc = " the supplied key. Returns olm_error() on failure. If the key doesn't"]
+    #[doc = " match the one used to encrypt the account then olm_pk_decryption_last_error()"]
+    #[doc = " will be \"BAD_ACCOUNT_KEY\". If the base64 couldn't be decoded then"]
+    #[doc = " olm_pk_decryption_last_error() will be \"INVALID_BASE64\". The input pickled"]
+    #[doc = " buffer is destroyed"]
+    pub fn olm_unpickle_pk_decryption(
+        decryption: *mut OlmPkDecryption,
+        key: *const ::std::os::raw::c_void,
+        key_length: usize,
+        pickled: *mut ::std::os::raw::c_void,
+        pickled_length: usize,
+        pubkey: *mut ::std::os::raw::c_void,
+        pubkey_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Get the length of the plaintext that will correspond to a ciphertext of the"]
+    #[doc = " given length."]
+    pub fn olm_pk_max_plaintext_length(
+        decryption: *mut OlmPkDecryption,
+        ciphertext_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Decrypt a ciphertext. The input ciphertext buffer is destroyed. See the"]
+    #[doc = " olm_pk_encrypt function for descriptions of the ephemeral_key and mac"]
+    #[doc = " arguments. Returns the length of the plaintext on success. Returns"]
+    #[doc = " olm_error() on failure. If the plaintext buffer is too small then"]
+    #[doc = " olm_pk_encryption_last_error() will be \"OUTPUT_BUFFER_TOO_SMALL\"."]
+    pub fn olm_pk_decrypt(
+        decryption: *mut OlmPkDecryption,
+        ephemeral_key: *const ::std::os::raw::c_void,
+        ephemeral_key_length: usize,
+        mac: *const ::std::os::raw::c_void,
+        mac_length: usize,
+        ciphertext: *mut ::std::os::raw::c_void,
+        ciphertext_length: usize,
+        plaintext: *mut ::std::os::raw::c_void,
+        max_plaintext_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " Get the private key for an OlmDecryption object as an unencoded byte array"]
+    #[doc = " private_key must be a pointer to a buffer of at least"]
+    #[doc = " olm_pk_private_key_length() bytes and this length must be passed in"]
+    #[doc = " private_key_length. If the given buffer is too small, returns olm_error()"]
+    #[doc = " and olm_pk_encryption_last_error() will be \"OUTPUT_BUFFER_TOO_SMALL\"."]
+    #[doc = " Returns the number of bytes written."]
+    pub fn olm_pk_get_private_key(
+        decryption: *mut OlmPkDecryption,
+        private_key: *mut ::std::os::raw::c_void,
+        private_key_length: usize,
+    ) -> usize;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OlmPkSigning {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn olm_pk_signing_size() -> usize;
+}
+extern "C" {
+    #[doc = " Initialise a signing object using the supplied memory"]
+    #[doc = "  The supplied memory must be at least olm_pk_signing_size() bytes"]
+    pub fn olm_pk_signing(memory: *mut ::std::os::raw::c_void) -> *mut OlmPkSigning;
+}
+extern "C" {
+    #[doc = " A null terminated string describing the most recent error to happen to a"]
+    #[doc = " signing object"]
+    pub fn olm_pk_signing_last_error(sign: *mut OlmPkSigning) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    #[doc = " Clears the memory used to back this signing object"]
+    pub fn olm_clear_pk_signing(sign: *mut OlmPkSigning) -> usize;
+}
+extern "C" {
+    #[doc = " Initialise the signing object with a public/private keypair from a seed. The"]
+    #[doc = " associated public key will be written to the pubkey buffer. Returns"]
+    #[doc = " olm_error() on failure. If the public key buffer is too small then"]
+    #[doc = " olm_pk_signing_last_error() will be \"OUTPUT_BUFFER_TOO_SMALL\".  If the seed"]
+    #[doc = " buffer is too small then olm_pk_signing_last_error() will be"]
+    #[doc = " \"INPUT_BUFFER_TOO_SMALL\"."]
+    pub fn olm_pk_signing_key_from_seed(
+        sign: *mut OlmPkSigning,
+        pubkey: *mut ::std::os::raw::c_void,
+        pubkey_length: usize,
+        seed: *const ::std::os::raw::c_void,
+        seed_length: usize,
+    ) -> usize;
+}
+extern "C" {
+    #[doc = " The size required for the seed for initialising a signing object."]
+    pub fn olm_pk_signing_seed_length() -> usize;
+}
+extern "C" {
+    #[doc = " The size of the public key of a signing object."]
+    pub fn olm_pk_signing_public_key_length() -> usize;
+}
+extern "C" {
+    #[doc = " The size of a signature created by a signing object."]
+    pub fn olm_pk_signature_length() -> usize;
+}
+extern "C" {
+    #[doc = " Sign a message. The signature will be written to the signature"]
+    #[doc = " buffer. Returns olm_error() on failure. If the signature buffer is too"]
+    #[doc = " small, olm_pk_signing_last_error() will be \"OUTPUT_BUFFER_TOO_SMALL\"."]
+    pub fn olm_pk_sign(
+        sign: *mut OlmPkSigning,
+        message: *const u8,
+        message_length: usize,
+        signature: *mut u8,
         signature_length: usize,
     ) -> usize;
 }

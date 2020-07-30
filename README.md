@@ -1,18 +1,29 @@
 # `olm-sys`: A Low Level Binding For [Olm](https://git.matrix.org/git/olm/)
 
+## Supported Platforms
+
+- Linux
+- macOS
+- WebAssembly
+
+**Compiling on Windows fails right now, due to lacking expertise with the platform.** Contributions very welcome!
+
+## Building
+
 This library can either be built by statically or dynamically linking against `libolm`:
 
-## Static
+### Static
 
 This is the default and requires no further action. `libolm` is built locally and then linked against statically.
 
-### Build dependencies
+#### Build dependencies
 
-- `libstdc++`
+- `libstdc++`/`libc++`
 - GNU make or a compatible variant
 - GCC
+- Emscripten (WebAssembly only)
 
-## Dynamic
+### Dynamic
 
 For linking against `libolm` dynamically, first make sure that you have the library in your link path.
 Then build this library with the `OLM_LINK_VARIANT` environment variable set to `dylib`.

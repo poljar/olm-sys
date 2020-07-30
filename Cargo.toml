@@ -1,7 +1,7 @@
 [package]
 name = "olm-sys"
-version = "0.1.5"
-authors = ["BrainBlasted <brainblasted@disroot.org>"]
+version = "0.2.0"
+authors = ["BrainBlasted <brainblasted@disroot.org>", "Johannes Hayeß <jhaye@mailbox.org>"]
 license = "Apache-2.0"
 description = "Low level binding for libolm"
 repository = "https://gitlab.gnome.org/BrainBlasted/olm-sys"

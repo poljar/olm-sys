@@ -7,3 +7,6 @@ description = "Low level binding for libolm"
 repository = "https://gitlab.gnome.org/BrainBlasted/olm-sys"
 build = "build.rs"
 
+[build-dependencies]
+cfg-if = "0.1"
+cmake = "0.1"

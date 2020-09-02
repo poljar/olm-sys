@@ -57,7 +57,7 @@ fn main() {
                     println!("cargo:rustc-link-lib=static=olm");
 
                     cfg_if::cfg_if! {
-                        if #[cfg(target_os = "macos")] {
+                        if #[cfg(not(any(target_os = "macos", target_os = "windows")))] {
                             println!("cargo:rustc-link-lib=stdc++");
                         }
                     }

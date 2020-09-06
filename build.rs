@@ -22,7 +22,7 @@ fn main() {
                 if #[cfg(target_arch = "wasm32")] {
                     wasm_build(olm_link_variant);
                 } else {
-                    native_build();
+                    native_build(olm_link_variant);
                 }
             }
         }
@@ -33,7 +33,7 @@ fn main() {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn native_build() {
+fn native_build(olm_link_variant: String) {
     let manifest_dir = match env::var_os("CARGO_MANIFEST_DIR") {
         Some(d) => d,
         None => panic!("Unable to read manifest dir"),
@@ -48,7 +48,7 @@ fn native_build() {
         .build();
 
     println!("cargo:rustc-link-search=native={}/lib", dst.display());
-    println!("cargo:rustc-link-lib=static=olm");
+    println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
 
     cfg_if::cfg_if! {
         if #[cfg(not(any(target_os = "macos", target_os = "windows")))] {

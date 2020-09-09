@@ -4,6 +4,7 @@
 
 - Linux
 - macOS
+- Windows
 - WebAssembly
 
 **Compiling on Windows fails right now, due to lacking expertise with the platform.** Contributions very welcome!
@@ -19,10 +20,10 @@ This is the default and requires no further action. `libolm` is built locally an
 #### Build dependencies
 
 - `libstdc++`/`libc++`
-- GNU make or a compatible variant
-- GCC
-- Emscripten (WebAssembly only)
 - cmake
+- GNU make or a compatible variant (WebAssembly only)
+- Emscripten (WebAssembly only)
+
 ### Dynamic
 
 For linking against `libolm` dynamically, first make sure that you have the library in your link path.

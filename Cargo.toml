@@ -5,6 +5,7 @@ authors = ["BrainBlasted <brainblasted@disroot.org>", "Johannes Hayeß <jhaye@ma
 license = "Apache-2.0"
 description = "Low level binding for libolm"
 repository = "https://gitlab.gnome.org/BrainBlasted/olm-sys"
+readme = "README.md"
 build = "build.rs"
 
 [build-dependencies]

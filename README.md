@@ -7,8 +7,6 @@
 - Windows
 - WebAssembly
 
-**Compiling on Windows fails right now, due to lacking expertise with the platform.** Contributions very welcome!
-
 ## Building
 
 This library can either be built by statically or dynamically linking against `libolm`:

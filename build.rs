@@ -51,7 +51,7 @@ fn native_build(olm_link_variant: String) {
     println!("cargo:rustc-link-search=native={}/lib", dst.display());
     println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
 
-    if target_os != "macos" || target_os != "windows" {
+    if target_os != "macos" && target_os != "windows" {
         println!("cargo:rustc-link-lib=stdc++");
     }
 }

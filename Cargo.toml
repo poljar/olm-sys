@@ -9,5 +9,4 @@ readme = "README.md"
 build = "build.rs"
 
 [build-dependencies]
-cfg-if = "0.1"
 cmake = "0.1"

@@ -17,13 +17,15 @@ fn main() {
 
     // Skip building and/or linking of libolm for docs.rs.
     if !docs_rs {
-        if olm_link_variant == "static" {
-            cfg_if::cfg_if! {
-                if #[cfg(target_arch = "wasm32")] {
+        cfg_if::cfg_if! {
+            if #[cfg(target_arch = "wasm32")] {
+                if olm_link_variant == "static" {
                     wasm_build(olm_link_variant);
                 } else {
-                    native_build(olm_link_variant);
+                    panic!("WASM32 cannot be linked dynamicly");
                 }
+            } else {
+                native_build(olm_link_variant);
             }
         }
 

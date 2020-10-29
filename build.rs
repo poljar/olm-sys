@@ -1,5 +1,6 @@
 use std::{env, path::PathBuf, fs};
 use std::process::{Command, Stdio};
+use std::path::Path;
 
 const DOCS_RS: &str = "DOCS_RS";
 const OLM_LINK_VARIANT_ENV: &str = "OLM_LINK_VARIANT";
@@ -48,7 +49,13 @@ fn native_build(olm_link_variant: String) {
         .define("BUILD_SHARED_LIBS", "NO")
         .build();
 
-    println!("cargo:rustc-link-search=native={}/lib", dst.display());
+    // See https://gitlab.gnome.org/BrainBlasted/olm-sys/-/issues/6 for details why this is required
+    if Path::new(&format!("{}/lib64", dst.display())).exists() {
+        println!("cargo:rustc-link-search=native={}/lib64", dst.display());
+    } else {
+        println!("cargo:rustc-link-search=native={}/lib", dst.display());
+    }
+
     println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
 
     if target_os != "macos" && target_os != "windows" {

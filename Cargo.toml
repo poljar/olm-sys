@@ -1,6 +1,6 @@
 [package]
 name = "olm-sys"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["BrainBlasted <brainblasted@disroot.org>", "Johannes Hayeß <jhaye@mailbox.org>"]
 license = "Apache-2.0"
 description = "Low level binding for libolm"

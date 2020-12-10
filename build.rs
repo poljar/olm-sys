@@ -1,6 +1,6 @@
-use std::{env, path::PathBuf, fs};
-use std::process::{Command, Stdio};
 use std::path::Path;
+use std::process::{Command, Stdio};
+use std::{env, fs, path::PathBuf};
 
 const DOCS_RS: &str = "DOCS_RS";
 const OLM_LINK_VARIANT_ENV: &str = "OLM_LINK_VARIANT";
@@ -67,7 +67,6 @@ fn native_build(olm_link_variant: String) {
 }
 
 fn wasm_build(olm_link_variant: String) {
-
     let manifest_dir = match env::var_os("CARGO_MANIFEST_DIR") {
         Some(d) => d,
         None => panic!("Unable to read manifest dir"),

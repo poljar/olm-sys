@@ -5,6 +5,7 @@
 - Linux
 - macOS
 - Windows
+- FreeBSD
 - WebAssembly
 
 ## Building

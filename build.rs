@@ -45,9 +45,43 @@ fn native_build(olm_link_variant: String) {
     let src = PathBuf::from(&manifest_dir).join("olm");
 
     // building libolm as a static lib
-    let dst = cmake::Config::new(src)
-        .define("BUILD_SHARED_LIBS", "NO")
-        .build();
+    let mut cmake = cmake::Config::new(src);
+    cmake.define("BUILD_SHARED_LIBS", "NO");
+
+    if target_os == "android" {
+        if let Ok(ndk) = std::env::var("ANDROID_NDK") {
+            let ndk_root = PathBuf::from(ndk);
+            let toolchain_path = PathBuf::from("build/cmake/android.toolchain.cmake");
+            let toolchain_file = ndk_root.join(toolchain_path);
+
+            cmake
+                .define("CMAKE_SYSTEM_NAME", "Android")
+                .define("CMAKE_SYSTEM_VERSION", "30")
+                .define("CMAKE_ANDROID_NDK", ndk_root)
+                .define("CMAKE_TOOLCHAIN_FILE", toolchain_file);
+        } else {
+            panic!(
+                "please set the ANDROID_NDK environment variable to your Android NDK instalation"
+            );
+        }
+
+        let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+
+        let abi = match target_arch.as_str() {
+            "aarch64" => "arm64-v8a",
+            "arm" => "armeabi-v7a",
+            "x86_64" => "x86_64",
+            "x86" => "x86",
+            _ => panic!(
+                "Unsupported target arch {} given, if this is an error please report a bug",
+                target_arch
+            ),
+        };
+
+        cmake.define("ANDROID_ABI", abi);
+    }
+
+    let dst = cmake.build();
 
     // See https://gitlab.gnome.org/BrainBlasted/olm-sys/-/issues/6 for details why this is required
     if Path::new(&format!("{}/lib64", dst.display())).exists() {
@@ -58,7 +92,7 @@ fn native_build(olm_link_variant: String) {
 
     println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
 
-    if target_os == "linux" {
+    if target_os == "linux" || target_os == "android" {
         println!("cargo:rustc-link-lib=stdc++");
     }
     if target_os == "freebsd" || target_os == "macos" {

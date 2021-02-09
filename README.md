@@ -1,4 +1,6 @@
-# `olm-sys`: A Low Level Binding For [Olm](https://git.matrix.org/git/olm/)
+# `olm-sys`: Low Level Bindings For [Olm](https://git.matrix.org/git/olm/)
+
+This is an intermediate crate that exposes the C API of `libolm` to Rust. If you want to start building things with `libolm` from Rust, check out [`olm-rs`](https://crates.io/crates/olm-rs).
 
 ## Supported Platforms
 

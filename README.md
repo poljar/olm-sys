@@ -32,3 +32,27 @@ For example, building your project using `olm-sys` as a dependency would look li
 ```
 OLM_LINK_VARIANT=dylib cargo build
 ```
+
+### Cross compiling for Android
+
+To enable cross compilation for Android set the environment variable
+`ANDROID_NDK` to the location of your NDK installation, for example:
+
+```bash
+$ ANRDOID_NDK=/home/user/Android/Sdk/ndk/22.0.7026061/
+```
+
+The linker needs to be set to an target specific one as well, for example for
+`aarch64-linux-android` set this into your cargo config:
+
+```
+[target.aarch64-linux-android]
+ar = "/home/user/Android/Sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/linux-x86_64/bin/ar"
+linker = "/home/user/Android/Sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang"
+```
+
+After both of these are set, compilation should work as usual using cargo:
+
+```bash
+$ ANDROID_NDK=~/Android/Sdk/ndk/22.0.7026061 cargo build --target aarch64-linux-android
+```

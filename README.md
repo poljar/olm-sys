@@ -4,6 +4,7 @@ This is an intermediate crate that exposes the C API of `libolm` to Rust. If you
 
 ## Supported Platforms
 
+- Android
 - Linux
 - macOS
 - Windows

@@ -32,8 +32,9 @@ For linking against `libolm` dynamically, first make sure that you have the libr
 Then build this library with the `OLM_LINK_VARIANT` environment variable set to `dylib`.
 
 For example, building your project using `olm-sys` as a dependency would look like this:
-```
-OLM_LINK_VARIANT=dylib cargo build
+
+```bash
+$ OLM_LINK_VARIANT=dylib cargo build
 ```
 
 ### Cross compiling for Android

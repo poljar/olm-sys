@@ -49,7 +49,7 @@ $ ANRDOID_NDK=/home/user/Android/Sdk/ndk/22.0.7026061/
 The linker needs to be set to an target specific one as well, for example for
 `aarch64-linux-android` set this into your cargo config:
 
-```
+```toml
 [target.aarch64-linux-android]
 ar = "/home/user/Android/Sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/linux-x86_64/bin/ar"
 linker = "/home/user/Android/Sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang"

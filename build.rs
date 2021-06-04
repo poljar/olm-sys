@@ -106,7 +106,7 @@ fn native_build(olm_link_variant: String) {
 
     println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
 
-    if target_os == "linux" || target_os == "android" {
+    if target_os == "linux" || target_os == "android" || target_os == "illumos" {
         println!("cargo:rustc-link-lib=stdc++");
     }
     if target_os == "freebsd" || target_os == "macos" {

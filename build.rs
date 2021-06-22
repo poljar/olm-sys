@@ -95,6 +95,29 @@ fn native_build(olm_link_variant: String) {
         cmake.define("ANDROID_ABI", abi);
     }
 
+    if target_os == "ios" {
+        cmake.define("CMAKE_SYSTEM_NAME", "iOS");
+        cmake.define("CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED", "NO");
+
+        let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+        if target_arch.as_str() == "x86_64" {
+            cmake.build_arg("-sdk");
+            cmake.build_arg("iphonesimulator");
+        }
+
+        let osx_architectures = match target_arch.as_str() {
+            "aarch64" => "arm64",
+            "x86_64" => "x86_64",
+            _ => panic!(
+                "Unsupported target arch {} given, if this is an error please report a bug",
+                target_arch
+            ),
+        };
+        cmake.define("CMAKE_OSX_ARCHITECTURES", osx_architectures);
+
+        cmake.generator("Xcode");
+    }
+
     let dst = cmake.build();
 
     // See https://gitlab.gnome.org/BrainBlasted/olm-sys/-/issues/6 for details why this is required
@@ -109,7 +132,7 @@ fn native_build(olm_link_variant: String) {
     if target_os == "linux" || target_os == "android" || target_os == "illumos" {
         println!("cargo:rustc-link-lib=stdc++");
     }
-    if target_os == "freebsd" || target_os == "macos" {
+    if target_os == "freebsd" || target_os == "macos" || target_os == "ios" {
         println!("cargo:rustc-link-lib=c++");
     }
 }

@@ -61,6 +61,8 @@ fn native_build(olm_link_variant: String) {
     // building libolm as a static lib
     let mut cmake = cmake::Config::new(src);
     cmake.define("BUILD_SHARED_LIBS", "NO");
+    // disable tests for libolm
+    cmake.define("OLM_TESTS", "OFF");
 
     if target_os == "android" {
         if let Ok(ndk) = std::env::var("ANDROID_NDK") {

@@ -22,7 +22,7 @@ This is the default and requires no further action. `libolm` is built locally an
 #### Build dependencies
 
 - `libstdc++`/`libc++`
-- cmake
+- cmake ([requires v3.12](https://github.com/alexcrichton/cmake-rs/issues/131))
 - GNU make or a compatible variant (WebAssembly only)
 - Emscripten (WebAssembly only)
 

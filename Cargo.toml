@@ -7,6 +7,9 @@ description = "Low level binding for libolm"
 repository = "https://gitlab.gnome.org/BrainBlasted/olm-sys"
 readme = "README.md"
 build = "build.rs"
+categories = ["cryptography"]
+keywords = ["olm", "libolm"]
+links = "olm"
 
 [build-dependencies]
 cmake = "0.1"

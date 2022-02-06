@@ -12,51 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate fs_extra;
+use fs_extra::dir::{copy, CopyOptions};
+
 use std::path::Path;
 use std::process::{Command, Stdio};
-use std::{env, fs, path::PathBuf};
+use std::{env, path::PathBuf};
 
-const DOCS_RS: &str = "DOCS_RS";
 const OLM_LINK_VARIANT_ENV: &str = "OLM_LINK_VARIANT";
 
 fn main() {
     let olm_link_variant = env::var(OLM_LINK_VARIANT_ENV).unwrap_or_else(|_| "static".to_string());
     let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
-    // When building on docs.rs, this environment variable is set, and since write access outside
-    // of the build dir is disabled, building locally is not an option.
-    // The only thing that we want however is documentation for things defined in lib.rs, so
-    // we can simply skip everything that this file does.
-    // More information: https://docs.rs/about
-    let docs_rs = match env::var(DOCS_RS) {
-        Ok(x) => x == "1",
-        _ => false,
-    };
 
-    // Skip building and/or linking of libolm for docs.rs.
-    if !docs_rs {
-        if target_arch == "wasm32" {
-            if olm_link_variant == "static" {
-                wasm_build(olm_link_variant);
-            } else {
-                panic!("WASM32 cannot be linked dynamicly");
-            }
+    let src_dir =
+        PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("Unable to find manifest dir"))
+            .join("olm");
+    let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("Unable to find output dir"));
+    let dest_dir = out_dir.join("olm");
+
+    // Copy libolm source to build dir
+    let mut options = CopyOptions::new();
+    options.copy_inside = true;
+    options.skip_exist = true;
+    let _ = copy(&src_dir, &dest_dir, &options).expect("Failed to copy olm directory");
+
+    if target_arch == "wasm32" {
+        if olm_link_variant == "static" {
+            wasm_build(&dest_dir, olm_link_variant);
         } else {
-            native_build(olm_link_variant);
+            panic!("WASM32 cannot be linked dynamicly");
         }
-        // Rebuild if link variant changed
-        println!("cargo:rerun-if-env-changed={}", OLM_LINK_VARIANT_ENV);
+    } else {
+        native_build(&dest_dir, olm_link_variant);
     }
+    // Rebuild if link variant changed
+    println!("cargo:rerun-if-env-changed={}", OLM_LINK_VARIANT_ENV);
 }
 
-fn native_build(olm_link_variant: String) {
-    let manifest_dir = match env::var_os("CARGO_MANIFEST_DIR") {
-        Some(d) => d,
-        None => panic!("Unable to read manifest dir"),
-    };
+fn native_build<P: AsRef<Path>>(src: P, olm_link_variant: String) {
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
-
-    // path to olm source code
-    let src = PathBuf::from(&manifest_dir).join("olm");
 
     // building libolm as a static lib
     let mut cmake = cmake::Config::new(src);
@@ -139,29 +134,12 @@ fn native_build(olm_link_variant: String) {
     }
 }
 
-fn wasm_build(olm_link_variant: String) {
-    let manifest_dir = match env::var_os("CARGO_MANIFEST_DIR") {
-        Some(d) => d,
-        None => panic!("Unable to read manifest dir"),
-    };
-
-    let src_file = "build/wasm/libolm.a";
-
-    // path to olm source code
-    let src = PathBuf::from(&manifest_dir).join("olm");
-    // where we will put our built library for static linking
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let dst = PathBuf::from(&out_path).join("build");
-    let _ = fs::create_dir(&dst);
-    // path to our final libolm file
-    let dst_file = dst.join("libolm.a");
+fn wasm_build<P: AsRef<Path>>(src: P, olm_link_variant: String) {
+    let lib_search_path = src.as_ref().join("build/wasm/");
 
     // building libolm as a static lib
-    if !dst_file.exists() {
-        run(Command::new("make").arg("wasm").current_dir(&src));
-        let _ = fs::copy(&src.join(src_file), &dst_file);
-    }
-    println!("cargo:rustc-link-search={}", dst.display());
+    run(Command::new("make").arg("wasm").current_dir(src));
+    println!("cargo:rustc-link-search={}", lib_search_path.display());
     println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
 }
 

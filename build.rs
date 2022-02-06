@@ -39,7 +39,7 @@ fn main() {
 
     if target_arch == "wasm32" {
         if olm_link_variant == "static" {
-            wasm_build(&dest_dir, olm_link_variant);
+            wasm_build(&dest_dir);
         } else {
             panic!("WASM32 cannot be linked dynamicly");
         }
@@ -134,13 +134,13 @@ fn native_build<P: AsRef<Path>>(src: P, olm_link_variant: String) {
     }
 }
 
-fn wasm_build<P: AsRef<Path>>(src: P, olm_link_variant: String) {
+fn wasm_build<P: AsRef<Path>>(src: P) {
     let lib_search_path = src.as_ref().join("build/wasm/");
 
     // building libolm as a static lib
     run(Command::new("make").arg("wasm").current_dir(src));
     println!("cargo:rustc-link-search={}", lib_search_path.display());
-    println!("cargo:rustc-link-lib={}=olm", olm_link_variant);
+    println!("cargo:rustc-link-lib=static=olm");
 }
 
 fn run(cmd: &mut Command) {

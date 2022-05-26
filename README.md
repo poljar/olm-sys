@@ -60,3 +60,12 @@ After both of these are set, compilation should work as usual using cargo:
 ```bash
 $ ANDROID_NDK=~/Android/Sdk/ndk/22.0.7026061 cargo build --target aarch64-linux-android
 ```
+
+### Cross compiling for iOS
+
+To enable cross compilation for iOS, set the environment variable
+`IOS_SDK_PATH` to the iOS SDK location by running:
+
+```bash
+$ export IOS_SDK_PATH=`xcrun --show-sdk-path --sdk iphoneos`
+```

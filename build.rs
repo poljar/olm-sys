@@ -93,26 +93,34 @@ fn native_build<P: AsRef<Path>>(src: P, olm_link_variant: String) {
     }
 
     if target_os == "ios" {
-        cmake.define("CMAKE_SYSTEM_NAME", "iOS");
-        cmake.define("CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED", "NO");
+        if let Ok(sdk) = std::env::var("IOS_SDK_PATH") {
+            let sdk_path = PathBuf::from(sdk);
+            cmake.define("CMAKE_SYSTEM_NAME", "iOS");
+            cmake.define("CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED", "NO");
+            cmake.define("CMAKE_OSX_SYSROOT", sdk_path);
 
-        let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
-        if target_arch.as_str() == "x86_64" {
-            cmake.build_arg("-sdk");
-            cmake.build_arg("iphonesimulator");
+            let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+            if target_arch.as_str() == "x86_64" {
+                cmake.build_arg("-sdk");
+                cmake.build_arg("iphonesimulator");
+            }
+
+            let osx_architectures = match target_arch.as_str() {
+                "aarch64" => "arm64",
+                "x86_64" => "x86_64",
+                _ => panic!(
+                    "Unsupported target arch {} given, if this is an error please report a bug",
+                    target_arch
+                ),
+            };
+            cmake.define("CMAKE_OSX_ARCHITECTURES", osx_architectures);
+
+            cmake.generator("Xcode");
+        } else {
+            panic!(
+                "please set the IOS_SDK_PATH environment variable: $ export IOS_SDK_PATH=`xcrun --show-sdk-path --sdk iphoneos`"
+            );
         }
-
-        let osx_architectures = match target_arch.as_str() {
-            "aarch64" => "arm64",
-            "x86_64" => "x86_64",
-            _ => panic!(
-                "Unsupported target arch {} given, if this is an error please report a bug",
-                target_arch
-            ),
-        };
-        cmake.define("CMAKE_OSX_ARCHITECTURES", osx_architectures);
-
-        cmake.generator("Xcode");
     }
 
     let dst = cmake.build();

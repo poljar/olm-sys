@@ -58,6 +58,7 @@ fn native_build<P: AsRef<Path>>(src: P, olm_link_variant: String) {
     cmake.define("BUILD_SHARED_LIBS", "NO");
     // disable tests for libolm
     cmake.define("OLM_TESTS", "OFF");
+    cmake.define("CMAKE_POLICY_VERSION_MINIMUM", "3.5");
 
     if target_os == "android" {
         if let Ok(ndk) = std::env::var("ANDROID_NDK") {

@@ -10,6 +10,7 @@ build = "build.rs"
 categories = ["cryptography"]
 keywords = ["olm", "libolm"]
 links = "olm"
+edition = "2021"
 
 [build-dependencies]
 cmake = "0.1"
